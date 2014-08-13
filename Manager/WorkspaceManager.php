@@ -174,14 +174,11 @@ class WorkspaceManager
         $workspace->setName($config->getWorkspaceName());
         $workspace->setCode($config->getWorkspaceCode());
 
-        if($config->getGuid() != NULL)
-        {
-            $workspace->setGuid($config->getGuid());
-        }else{
-            $workspace->setGuid($this->ut->generateGuid());   
-        }
-        $workspace->setDescription($config->getWorkspaceDescription());
+        $config->getGuid() != NULL ?
+            $workspace->setGuid($config->getGuid()):
+            $workspace->setGuid($this->ut->generateGuid());
 
+        $workspace->setDescription($config->getWorkspaceDescription());
         $workspace->setDisplayable($config->isDisplayable());
         $workspace->setSelfRegistration($config->getSelfRegistration());
         $workspace->setSelfUnregistration($config->getSelfUnregistration());
@@ -717,7 +714,9 @@ class WorkspaceManager
      */
     public function getLatestWorkspacesByUser(User $user, array $roles, $max = 5)
     {
-        return $this->workspaceRepo->findLatestWorkspacesByUser($user, $roles, $max);
+        return count($roles) > 0 ?
+            $this->workspaceRepo->findLatestWorkspacesByUser($user, $roles, $max) :
+            array();
     }
 
     /**

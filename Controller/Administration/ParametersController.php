@@ -63,6 +63,7 @@ class ParametersController extends Controller
     private $toolManager;
     private $paramAdminTool;
     private $router;
+    private $ipwlm;
 
     /**
      * @DI\InjectParams({
@@ -611,7 +612,9 @@ class ParametersController extends Controller
         $this->checkOpen();
 
         $config = $this->configHandler->getPlatformConfig();
-        $form = $this->formFactory->create(new AdminForm\SessionType(), $config);
+        $form = $this->formFactory->create(
+            new AdminForm\SessionType($config->getSessionStorageType(), $config)
+        );
 
         return array('form' => $form->createView());
     }
@@ -627,12 +630,14 @@ class ParametersController extends Controller
     {
         $this->checkOpen();
 
-        $platformConfig = $this->configHandler->getPlatformConfig();
+        $formData = $this->request->request->get('platform_session_form', array());
+        $storageType = isset($formData['session_storage_type']) ?
+            $formData['session_storage_type'] :
+            $this->configHandler->getParameter('session_storage_type');
         $form = $this->formFactory->create(
-            new AdminForm\SessionType($this->configHandler->getParameter('session_storage_type')),
-            $platformConfig
+            new AdminForm\SessionType($storageType),
+            $this->configHandler->getPlatformConfig()
         );
-
         $form->handleRequest($this->request);
 
         if ($form->isValid()) {
@@ -760,7 +765,7 @@ class ParametersController extends Controller
     public function maintenancePageAction()
     {
         $this->checkOpen();
-        //the current ip must be whitelisted so it can access the plateforme under maintenance.
+        //the current ip must be whitelisted so it can access the the plateform when it's under maintenance
         $this->ipwlm->addIP($_SERVER['REMOTE_ADDR']);
 
         return array();
